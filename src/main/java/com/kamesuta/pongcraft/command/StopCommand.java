@@ -5,6 +5,8 @@ import com.kamesuta.pongcraft.Config;
 import com.kamesuta.pongcraft.PongCraft;
 import dev.kotx.flylib.command.Command;
 import dev.kotx.flylib.command.CommandContext;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 
 public class StopCommand extends Command {
     public StopCommand() {
@@ -23,5 +25,10 @@ public class StopCommand extends Command {
 
         // ボールを削除
         PongCraft.instance.balls.forEach(Ball::destroy);
+
+        // ボールを削除
+        Bukkit.selectEntities(ctx.getSender(), "@e[tag=ball]").forEach(Entity::remove);
+        // パドルを削除
+        Bukkit.selectEntities(ctx.getSender(), "@e[tag=paddle]").forEach(Entity::remove);
     }
 }
