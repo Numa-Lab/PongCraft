@@ -4,6 +4,8 @@ import com.kamesuta.pongcraft.Ball;
 import com.kamesuta.pongcraft.Config;
 import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.Listener;
@@ -22,16 +24,20 @@ public class BallListener implements Listener {
                     // ボールの位置を取得する
                     Location ballPos = ball.entity.getLocation();
                     Block block = ballPos.getBlock();
+
+                    //block.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, block.getLocation(), 5, .2, .2, .2);
+                    block.getRelative(BlockFace.DOWN).setType(Material.YELLOW_CONCRETE);
+
                     Block 北 = block.getRelative(BlockFace.NORTH);
                     Block 南 = block.getRelative(BlockFace.SOUTH);
                     Block 東 = block.getRelative(BlockFace.EAST);
                     Block 西 = block.getRelative(BlockFace.WEST);
                     if (北.getType().isSolid()) {
                         // 北のブロックにあたったら
-                        ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
+                        ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
                     } else if (南.getType().isSolid()) {
                         // 南のブロックにあたったら
-                        ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
+                        ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
                     }
                     if (東.getType().isSolid()) {
                         // 東のブロックにあたったら
