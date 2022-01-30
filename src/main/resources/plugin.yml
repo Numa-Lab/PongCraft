@@ -1,0 +1,4 @@
+name: PongCraft
+version: '${project.version}'
+main: com.kamesuta.pongcraft.PongCraft
+authors: [ Kamesuta ]
