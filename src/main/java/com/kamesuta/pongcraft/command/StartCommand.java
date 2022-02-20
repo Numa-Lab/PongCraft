@@ -37,18 +37,17 @@ public class StartCommand extends Command {
 
         PongCraft.instance.balls.add(ball);
 
-        // #TODO プレイヤーにパドルをかぶせる
-
-        // 頭の上に豚を乗せる
+        // プレイヤーにパドルをかぶせる
+        // 頭の上にFallingBlockを乗せ続ける
         for (Player player : Bukkit.getOnlinePlayers()) {
-            FallingBlock pig = ball.entity.getWorld().spawnFallingBlock(ball.entity.getLocation(), Material.CRACKED_STONE_BRICKS, (byte) 0);
-            //pig.setInvisible(true);
-            //pig.setAI(false);
-            pig.setGravity(false);
-            pig.setSilent(true);
-            pig.setInvulnerable(true);
-            pig.addScoreboardTag("paddle");
-            player.addPassenger(pig);
+            FallingBlock paddle = ball.entity.getWorld().spawnFallingBlock(ball.entity.getLocation(), Material.CRACKED_STONE_BRICKS, (byte) 0);
+            //paddle.setInvisible(true);
+            //paddle.setAI(false);
+            paddle.setGravity(false);
+            paddle.setSilent(true);
+            paddle.setInvulnerable(true);
+            paddle.addScoreboardTag("paddle");
+            player.addPassenger(paddle);
         }
     }
 }

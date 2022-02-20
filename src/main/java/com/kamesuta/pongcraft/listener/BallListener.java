@@ -34,29 +34,7 @@ public class BallListener implements Listener {
 
                     // #TODO 壁にぶつかったら跳ね返る
                     // ボールの位置を取得する
-                    final Location ballPos = ball.entity.getLocation();
-
-                    //block.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, block.getLocation(), 5, .2, .2, .2);
-                    //block.getRelative(BlockFace.DOWN).setType(Material.YELLOW_CONCRETE);
-
-//                    double xSize = Math.abs(ball.veloctiy.getX()) * 1.5 + 0.1;
-//                    double zSize = Math.abs(ball.veloctiy.getZ()) * 1.5 + 0.1;
-//                    boolean bHit = true;
-//                    if (ballPos.clone().add(0, 0, -xSize).getBlock().getType().isSolid()) {
-//                        // 北のブロックにあたったら
-//                        ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
-//                    } else if (ballPos.clone().add(0, 0, xSize).getBlock().getType().isSolid()) {
-//                        // 南のブロックにあたったら
-//                        ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
-//                    } else if (ballPos.clone().add(zSize, 0, 0).getBlock().getType().isSolid()) {
-//                        // 東のブロックにあたったら
-//                        ball.veloctiy.setX(-Math.abs(ball.veloctiy.getX()));
-//                    } else if (ballPos.clone().add(-zSize, 0, 0).getBlock().getType().isSolid()) {
-//                        // 西のブロックにあたったら
-//                        ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
-//                    } else {
-//                        bHit = false;
-//                    }
+                    final Location ballPos = ball.getLocation();
 
                     // 方角のヒットカウント
                     int hitNorth = 0, hitSouth = 0, hitEast = 0, hitWest = 0;
@@ -139,7 +117,7 @@ public class BallListener implements Listener {
                     long timeMs = System.currentTimeMillis();
 
                     // プレイヤー(パドル)にぶつかったら跳ね返る
-                    Optional<Player> isHit = ball.entity.getLocation().getNearbyPlayers(3)
+                    Optional<Player> isHit = ball.getLocation().getNearbyPlayers(3)
                             .stream()
                             .filter(player -> {
                                 // 詳細な当たり判定を取る
@@ -195,7 +173,7 @@ public class BallListener implements Listener {
                             ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()) * velX);
 
                             // ボールとプレイヤーのZ座標の差を求める
-                            double diffZ = ball.entity.getLocation().getZ() - player.getLocation().getZ();
+                            double diffZ = ball.getLocation().getZ() - player.getLocation().getZ();
 
                             // Z速度にdiffZを加算
                             ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * Config.ballSpeed);
