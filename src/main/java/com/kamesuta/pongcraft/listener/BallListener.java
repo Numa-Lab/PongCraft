@@ -3,10 +3,7 @@ package com.kamesuta.pongcraft.listener;
 import com.kamesuta.pongcraft.Ball;
 import com.kamesuta.pongcraft.Config;
 import com.kamesuta.pongcraft.PongCraft;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -39,6 +36,7 @@ public class BallListener implements Listener {
                     //block.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, block.getLocation(), 5, .2, .2, .2);
                     //block.getRelative(BlockFace.DOWN).setType(Material.YELLOW_CONCRETE);
 
+                    boolean bHit = true;
                     if (ballPos.clone().add(0, 0, -0.25).getBlock().getType().isSolid()) {
                         // 北のブロックにあたったら
                         ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
@@ -51,6 +49,13 @@ public class BallListener implements Listener {
                     } else if (ballPos.clone().add(-0.25, 0, 0).getBlock().getType().isSolid()) {
                         // 西のブロックにあたったら
                         ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
+                    } else {
+                        bHit = false;
+                    }
+
+                    if (bHit) {
+                        // 音を出す
+                        ballPos.getWorld().playSound(ballPos, Sound.ENTITY_BLAZE_HURT, Config.soundVolume, 1);
                     }
 
                     // 現在の時刻を取得
@@ -125,6 +130,9 @@ public class BallListener implements Listener {
                             // パーティクルを出す
                             // /particle minecraft:crit ~ ~.5 ~ 0.1 0.1 0.1 0.5 30 normal
                             hitPos.getWorld().spawnParticle(Particle.CRIT, hitPos, 50, .1, .1, 1, 0.5);
+
+                            // 音を出す
+                            hitPos.getWorld().playSound(hitPos, Sound.ENTITY_BLAZE_HURT, Config.soundVolume, 1);
                         }
                     }
                 }

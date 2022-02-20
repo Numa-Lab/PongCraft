@@ -9,4 +9,7 @@ public class Config {
 
     // ボールの速度
     public static double ballSpeed = 0.3;
+
+    // ボールの音の大きさ
+    public static float soundVolume = 2.6f;
 }
