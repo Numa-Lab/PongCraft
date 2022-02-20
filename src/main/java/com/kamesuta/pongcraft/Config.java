@@ -1,6 +1,12 @@
 package com.kamesuta.pongcraft;
 
 public class Config {
+    // ON
     public static boolean isEnabled = false;
-    public static long cooldownTimeMs = 1000;
+
+    // クールダウンタイム
+    public static int cooldownTimeMs = 1000;
+
+    // ボールの速度
+    public static double ballSpeed = 0.3;
 }

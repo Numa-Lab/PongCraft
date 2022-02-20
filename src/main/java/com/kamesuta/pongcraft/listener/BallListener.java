@@ -53,13 +53,23 @@ public class BallListener implements Listener {
                         ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
                     }
 
-                    // #TODO プレイヤー(パドル)にぶつかったら跳ね返る
-                    OptionalInt isHit = ball.entity.getLocation().getNearbyPlayers(3)
+                    // 現在の時刻を取得
+                    long timeMs = System.currentTimeMillis();
+
+                    // プレイヤー(パドル)にぶつかったら跳ね返る
+                    Optional<Player> isHit = ball.entity.getLocation().getNearbyPlayers(3)
                             .stream()
-                            .mapToInt(player -> {
+                            .filter(player -> {
                                 // 詳細な当たり判定を取る
                                 Location p = player.getLocation();
                                 Location q = ballPos;
+
+                                // プレイヤーのX座標の差を取得
+                                double diffX = Optional.ofNullable(player.getPersistentDataContainer().get(KEY_PLAYER_X, PersistentDataType.DOUBLE))
+                                        .map(posX -> player.getLocation().getX() - posX)
+                                        .orElse(0.0);
+
+                                //PongCraft.LOGGER.log(Level.INFO, String.format("diffX: %s", diffX));
 
                                 double px = p.getX();
                                 double pz = p.getZ();
@@ -67,44 +77,47 @@ public class BallListener implements Listener {
                                 double qz = q.getZ();
 
                                 // 矩形の中にいる人に絞った
-                                if (Math.abs(px - qx) < 0.2 && Math.abs(pz - qz) < 2) {
+                                double ballPlayerSpeed = Math.abs(ball.veloctiy.getX()) + Math.abs(diffX * 5);
+                                if (Math.abs(px - qx) < ballPlayerSpeed && Math.abs(pz - qz) < 2) {
                                     // 最後にあたった時間を取得
                                     long lastHitTime = player.getPersistentDataContainer().getOrDefault(KEY_COOLDOWN, PersistentDataType.LONG, 0L);
 
-                                    // 現在の時刻を取得
-                                    long timeMs = System.currentTimeMillis();
-
                                     // クールダウン未満だったらヒットしない
                                     if (lastHitTime + Config.cooldownTimeMs > timeMs)
-                                        return 0;
+                                        return false;
 
-                                    // クールダウンをセット
-                                    player.getPersistentDataContainer().set(KEY_COOLDOWN, PersistentDataType.LONG, timeMs);
-
-                                    // プレイヤーの最後のX座標を取得
-                                    Double lastPosX = player.getPersistentDataContainer().get(KEY_PLAYER_X, PersistentDataType.DOUBLE);
-                                    if (lastPosX == null)
-                                        return 0;
-
-                                    // 歩いたX座標の差を求める
-                                    double diffPosX = player.getLocation().getX() - lastPosX;
-
-                                    // 当たる
-                                    return diffPosX > 0 ? 1: -1;
+                                    return true;
                                 }
 
-                                return 0;
+                                return false;
                             })
-                            .filter(i -> i != 0)
                             .findFirst();
 
                     if (isHit.isPresent()) {
-                        int vel = isHit.getAsInt();
+                        // あたったプレイヤー
+                        Player player = isHit.get();
 
-                        // X速度を逆にする
-                        ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()) * vel);
+                        // クールダウンをセット
+                        player.getPersistentDataContainer().set(KEY_COOLDOWN, PersistentDataType.LONG, timeMs);
 
-//                        PongCraft.LOGGER.log(Level.INFO, String.format("hit: %s, %s", vel, ball.veloctiy.getX()));
+                        // プレイヤーの最後のX座標を取得
+                        Double lastPosX = player.getPersistentDataContainer().get(KEY_PLAYER_X, PersistentDataType.DOUBLE);
+                        if (lastPosX != null) {
+                            // 歩いたX座標の差を求める
+                            double diffPosX = player.getLocation().getX() - lastPosX;
+
+                            // 当たる
+                            int velX = diffPosX > 0 ? 1 : -1;
+
+                            // X速度を逆にする
+                            ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()) * velX);
+
+                            // ボールとプレイヤーのZ座標の差を求める
+                            double diffZ = ball.entity.getLocation().getZ() - player.getLocation().getZ();
+
+                            // Z速度にdiffZを加算
+                            ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * Config.ballSpeed);
+                        }
                     }
                 }
 

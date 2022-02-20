@@ -23,6 +23,6 @@ public class Ball {
         entity.setGravity(false);
         entity.setInvulnerable(true);
         entity.addScoreboardTag("ball");
-        return new Ball(entity, new Vector(0.1, 0, 0.1));
+        return new Ball(entity, new Vector(Config.ballSpeed, 0, Config.ballSpeed));
     }
 }
