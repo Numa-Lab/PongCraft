@@ -6,6 +6,7 @@ import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -116,6 +117,14 @@ public class BallListener implements Listener {
 
                             // Z速度にdiffZを加算
                             ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * Config.ballSpeed);
+
+                            // パーティクルの座標
+                            Location hitPos = player.getLocation().clone();
+                            hitPos.setX(ballPos.getX());
+
+                            // パーティクルを出す
+                            // /particle minecraft:crit ~ ~.5 ~ 0.1 0.1 0.1 0.5 30 normal
+                            hitPos.getWorld().spawnParticle(Particle.CRIT, hitPos, 50, .1, .1, 1, 0.5);
                         }
                     }
                 }
