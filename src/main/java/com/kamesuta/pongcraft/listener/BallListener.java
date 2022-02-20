@@ -54,6 +54,9 @@ public class BallListener implements Listener {
                     }
 
                     if (bHit) {
+                        // パーティクルを出す
+                        ballPos.getWorld().spawnParticle(Particle.CRIT, ballPos.clone().add(0, .5, 0), 20, .1, .1, .1, 0.5);
+
                         // 音を出す
                         ballPos.getWorld().playSound(ballPos, Sound.ENTITY_BLAZE_HURT, Config.soundVolume, 1);
                     }
