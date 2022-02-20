@@ -13,8 +13,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.logging.Level;
+
 public class BallListener implements Listener {
     public static final NamespacedKey KEY_COOLDOWN = new NamespacedKey(PongCraft.instance, "cooldown");
+    public static final NamespacedKey KEY_PLAYER_X = new NamespacedKey(PongCraft.instance, "player_x");
 
     public BallListener() {
         new BukkitRunnable() {
@@ -49,9 +54,9 @@ public class BallListener implements Listener {
                     }
 
                     // #TODO プレイヤー(パドル)にぶつかったら跳ね返る
-                    boolean isHit = ball.entity.getLocation().getNearbyPlayers(3)
+                    OptionalInt isHit = ball.entity.getLocation().getNearbyPlayers(3)
                             .stream()
-                            .anyMatch(player -> {
+                            .mapToInt(player -> {
                                 // 詳細な当たり判定を取る
                                 Location p = player.getLocation();
                                 Location q = ballPos;
@@ -71,22 +76,43 @@ public class BallListener implements Listener {
 
                                     // クールダウン未満だったらヒットしない
                                     if (lastHitTime + Config.cooldownTimeMs > timeMs)
-                                        return false;
+                                        return 0;
 
                                     // クールダウンをセット
                                     player.getPersistentDataContainer().set(KEY_COOLDOWN, PersistentDataType.LONG, timeMs);
 
+                                    // プレイヤーの最後のX座標を取得
+                                    Double lastPosX = player.getPersistentDataContainer().get(KEY_PLAYER_X, PersistentDataType.DOUBLE);
+                                    if (lastPosX == null)
+                                        return 0;
+
+                                    // 歩いたX座標の差を求める
+                                    double diffPosX = player.getLocation().getX() - lastPosX;
+
                                     // 当たる
-                                    return true;
+                                    return diffPosX > 0 ? 1: -1;
                                 }
 
-                                return false;
-                            });
+                                return 0;
+                            })
+                            .filter(i -> i != 0)
+                            .findFirst();
 
-                    if (isHit) {
+                    if (isHit.isPresent()) {
+                        int vel = isHit.getAsInt();
+
                         // X速度を逆にする
-                        ball.veloctiy.setX(-ball.veloctiy.getX());
+                        ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()) * vel);
+
+//                        PongCraft.LOGGER.log(Level.INFO, String.format("hit: %s, %s", vel, ball.veloctiy.getX()));
                     }
+                }
+
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    // プレイヤーの位置を取得
+                    Location playerPos = player.getLocation();
+                    // プレイヤーのX座標をメモる
+                    player.getPersistentDataContainer().set(KEY_PLAYER_X, PersistentDataType.DOUBLE, playerPos.getX());
                 }
             }
         }.runTaskTimer(PongCraft.instance, 0, 1);
