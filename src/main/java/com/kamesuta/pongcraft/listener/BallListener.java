@@ -2,6 +2,7 @@ package com.kamesuta.pongcraft.listener;
 
 import com.kamesuta.pongcraft.Ball;
 import com.kamesuta.pongcraft.Config;
+import com.kamesuta.pongcraft.ForceTeleport;
 import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -12,6 +13,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +28,22 @@ public class BallListener implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
+                if (!Config.isEnabled) {
+                    return;
+                }
+
                 for (Ball ball : PongCraft.instance.balls) {
-                    ball.entity.teleport(ball.entity.getLocation().clone().add(ball.veloctiy));
+                    // ボールを動かす
+                    Location tpLocation = ball.entity.getLocation().clone().add(ball.veloctiy);
+                    ForceTeleport.teleportForce(ball.entity, tpLocation);
+
+                    // ボールプレイヤーをTPし続ける
+                    if (ball.ballPlayer != null) {
+                        ball.ballPlayer.teleport(ball.getLocation().clone().setDirection(ball.ballPlayer.getLocation().getDirection()));
+//                        if (!ball.ballPlayer.isInsideVehicle()) {
+//                            ball.entity.addPassenger(ball.ballPlayer);
+//                        }
+                    }
 
                     // #TODO 角に当てたり、動きながら当てたら早くなったりするようにする
                     // #TODO 反発力あげる、スピード上げる、跳ね返る向きをランダムにしたりする
@@ -120,6 +136,16 @@ public class BallListener implements Listener {
                     Optional<Player> isHit = ball.getLocation().getNearbyPlayers(3)
                             .stream()
                             .filter(player -> {
+                                // ボールプレイヤーがボールに当たらないようにする
+                                if (player.equals(ball.ballPlayer)) {
+                                    return false;
+                                }
+
+                                // 英霊が当たらないようにする
+                                if (player.getGameMode() == GameMode.SPECTATOR) {
+                                    return false;
+                                }
+
                                 // 詳細な当たり判定を取る
                                 Location p = player.getLocation();
                                 Location q = ballPos;
@@ -200,7 +226,6 @@ public class BallListener implements Listener {
                 }
             }
         }.runTaskTimer(PongCraft.instance, 0, 1);
-
 
         new BukkitRunnable() {
             @Override

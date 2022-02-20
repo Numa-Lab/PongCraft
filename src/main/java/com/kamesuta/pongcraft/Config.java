@@ -12,4 +12,7 @@ public class Config {
 
     // ボールの音の大きさ
     public static float soundVolume = 2.6f;
+
+    // おまえボールな
+    public static String ballPlayer = "";
 }

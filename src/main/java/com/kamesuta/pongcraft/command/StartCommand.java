@@ -40,6 +40,10 @@ public class StartCommand extends Command {
         // プレイヤーにパドルをかぶせる
         // 頭の上にFallingBlockを乗せ続ける
         for (Player player : Bukkit.getOnlinePlayers()) {
+            // ボールプレイヤーにはパドルを乗せない
+            if (player.equals(ball.ballPlayer))
+                continue;
+
             FallingBlock paddle = ball.entity.getWorld().spawnFallingBlock(ball.entity.getLocation(), Material.CRACKED_STONE_BRICKS, (byte) 0);
             //paddle.setInvisible(true);
             //paddle.setAI(false);
