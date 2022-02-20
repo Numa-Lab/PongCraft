@@ -4,16 +4,19 @@ import com.kamesuta.pongcraft.Ball;
 import com.kamesuta.pongcraft.Config;
 import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.*;
-import org.bukkit.entity.Pig;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BallListener implements Listener {
     public static final NamespacedKey KEY_COOLDOWN = new NamespacedKey(PongCraft.instance, "cooldown");
@@ -36,24 +39,95 @@ public class BallListener implements Listener {
                     //block.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, block.getLocation(), 5, .2, .2, .2);
                     //block.getRelative(BlockFace.DOWN).setType(Material.YELLOW_CONCRETE);
 
-                    boolean bHit = true;
-                    if (ballPos.clone().add(0, 0, -0.25).getBlock().getType().isSolid()) {
-                        // 北のブロックにあたったら
-                        ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
-                    } else if (ballPos.clone().add(0, 0, 0.25).getBlock().getType().isSolid()) {
-                        // 南のブロックにあたったら
-                        ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
-                    } else if (ballPos.clone().add(0.25, 0, 0).getBlock().getType().isSolid()) {
-                        // 東のブロックにあたったら
-                        ball.veloctiy.setX(-Math.abs(ball.veloctiy.getX()));
-                    } else if (ballPos.clone().add(-0.25, 0, 0).getBlock().getType().isSolid()) {
-                        // 西のブロックにあたったら
-                        ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
-                    } else {
-                        bHit = false;
+//                    double xSize = Math.abs(ball.veloctiy.getX()) * 1.5 + 0.1;
+//                    double zSize = Math.abs(ball.veloctiy.getZ()) * 1.5 + 0.1;
+//                    boolean bHit = true;
+//                    if (ballPos.clone().add(0, 0, -xSize).getBlock().getType().isSolid()) {
+//                        // 北のブロックにあたったら
+//                        ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
+//                    } else if (ballPos.clone().add(0, 0, xSize).getBlock().getType().isSolid()) {
+//                        // 南のブロックにあたったら
+//                        ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
+//                    } else if (ballPos.clone().add(zSize, 0, 0).getBlock().getType().isSolid()) {
+//                        // 東のブロックにあたったら
+//                        ball.veloctiy.setX(-Math.abs(ball.veloctiy.getX()));
+//                    } else if (ballPos.clone().add(-zSize, 0, 0).getBlock().getType().isSolid()) {
+//                        // 西のブロックにあたったら
+//                        ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
+//                    } else {
+//                        bHit = false;
+//                    }
+
+                    // 方角のヒットカウント
+                    int hitNorth = 0, hitSouth = 0, hitEast = 0, hitWest = 0;
+
+                    // ボールの位置を取得する
+                    Block baseBlock = ballPos.getBlock();
+                    // 壁に当たったら
+                    List<Location> hitLocations = Stream.of(
+                                    BlockFace.NORTH_WEST, BlockFace.NORTH, BlockFace.NORTH_EAST,
+                                    BlockFace.WEST, BlockFace.EAST,
+                                    BlockFace.SOUTH_WEST, BlockFace.SOUTH, BlockFace.SOUTH_EAST)
+                            .map(baseBlock::getRelative)
+                            .filter(block -> block.getType().isSolid()) // 壁に当たったら
+                            .flatMap(block -> Stream.of(
+                                    new Vector(-0.5, 0, 0.5), new Vector(0.5, 0, 0.5),
+                                    new Vector(-0.5, 0, -0.5), new Vector(0.5, 0, -0.5)
+                            ).map(vector -> block.getLocation().clone().add(vector)))
+//                            .filter(location -> location.distance(ballPos) < 1)
+                            .collect(Collectors.toList());
+
+                    // あたった点すべてループ
+                    for (Location location : hitLocations) {
+                        Location diff = location.clone().subtract(ballPos);
+                        double xDiff = diff.getX();
+                        double zDiff = diff.getZ();
+
+                        // あたったときの判定
+                        if (Math.abs(xDiff) > Math.abs(zDiff)) {
+                            // 左　または　右　にあたった
+                            if (xDiff > 0) {
+                                // 東のブロックにあたったら
+                                hitEast++;
+                            } else {
+                                // 西のブロックにあたったら
+                                hitWest++;
+                            }
+                        } else {
+                            // 上　または　下　にあたった
+                            if (zDiff > 0) {
+                                // 北のブロックにあたったら
+                                hitNorth++;
+                            } else {
+                                // 南のブロックにあたったら
+                                hitSouth++;
+                            }
+                        }
                     }
 
-                    if (bHit) {
+                    // あたったら
+                    if (!hitLocations.isEmpty()) {
+                        int diffX = hitEast - hitWest;
+                        int diffZ = hitNorth - hitSouth;
+
+                        if (Math.abs(diffX) > Math.abs(diffZ)) {
+                            if (hitEast > hitWest) {
+                                // 東のブロックにあたったら
+                                ball.veloctiy.setX(-Math.abs(ball.veloctiy.getX()));
+                            } else {
+                                // 西のブロックにあたったら
+                                ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
+                            }
+                        } else {
+                            if (hitNorth > hitSouth) {
+                                // 北のブロックにあたったら
+                                ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
+                            } else {
+                                // 南のブロックにあたったら
+                                ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
+                            }
+                        }
+
                         // パーティクルを出す
                         ballPos.getWorld().spawnParticle(Particle.CRIT, ballPos.clone().add(0, .5, 0), 20, .1, .1, .1, 0.5);
 
