@@ -5,13 +5,17 @@ import com.kamesuta.pongcraft.Config;
 import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class BallListener implements Listener {
+    public static final NamespacedKey KEY_COOLDOWN = new NamespacedKey(PongCraft.instance, "cooldown");
+
     public BallListener() {
         new BukkitRunnable() {
             @Override
@@ -19,7 +23,6 @@ public class BallListener implements Listener {
                 for (Ball ball : PongCraft.instance.balls) {
                     ball.entity.teleport(ball.entity.getLocation().clone().add(ball.veloctiy));
 
-                    // #TODO クールダウンを設ける
                     // #TODO 角に当てたり、動きながら当てたら早くなったりするようにする
                     // #TODO 反発力あげる、スピード上げる、跳ね返る向きをランダムにしたりする
 
@@ -58,10 +61,26 @@ public class BallListener implements Listener {
                                 double qx = q.getX();
                                 double qz = q.getZ();
 
-                                // #TODO 連続で同じプレイヤーに当たらないようにクールダウンを付ける
-
                                 // 矩形の中にいる人に絞った
-                                return (Math.abs(px - qx) < 0.2 && Math.abs(pz - qz) < 2);
+                                if (Math.abs(px - qx) < 0.2 && Math.abs(pz - qz) < 2) {
+                                    // 最後にあたった時間を取得
+                                    long lastHitTime = player.getPersistentDataContainer().getOrDefault(KEY_COOLDOWN, PersistentDataType.LONG, 0L);
+
+                                    // 現在の時刻を取得
+                                    long timeMs = System.currentTimeMillis();
+
+                                    // クールダウン未満だったらヒットしない
+                                    if (lastHitTime + Config.cooldownTimeMs > timeMs)
+                                        return false;
+
+                                    // クールダウンをセット
+                                    player.getPersistentDataContainer().set(KEY_COOLDOWN, PersistentDataType.LONG, timeMs);
+
+                                    // 当たる
+                                    return true;
+                                }
+
+                                return false;
                             });
 
                     if (isHit) {
