@@ -44,8 +44,7 @@ public class BallListener implements Listener {
                     } else if (ballPos.clone().add(0, 0, 0.25).getBlock().getType().isSolid()) {
                         // 南のブロックにあたったら
                         ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
-                    }
-                    if (ballPos.clone().add(0.25, 0, 0).getBlock().getType().isSolid()) {
+                    } else if (ballPos.clone().add(0.25, 0, 0).getBlock().getType().isSolid()) {
                         // 東のブロックにあたったら
                         ball.veloctiy.setX(-Math.abs(ball.veloctiy.getX()));
                     } else if (ballPos.clone().add(-0.25, 0, 0).getBlock().getType().isSolid()) {
