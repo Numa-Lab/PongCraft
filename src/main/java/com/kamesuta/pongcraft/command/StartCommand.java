@@ -10,7 +10,13 @@ import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class StartCommand extends Command {
     public StartCommand() {
@@ -49,6 +55,13 @@ public class StartCommand extends Command {
 
         PongCraft.instance.balls.add(ball);
 
+        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+        Objective ob = sb.getObjective("control");
+        if (ob != null) {
+            Score ballSpeed = ob.getScore("ballSpeed");
+            ballSpeed.setScore(1000);
+        }
+
         // プレイヤーにパドルをかぶせる
         // 頭の上にFallingBlockを乗せ続ける
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -56,14 +69,7 @@ public class StartCommand extends Command {
             if (player.equals(ball.ballPlayer))
                 continue;
 
-            FallingBlock paddle = ball.entity.getWorld().spawnFallingBlock(ball.entity.getLocation(), Material.CRACKED_STONE_BRICKS, (byte) 0);
-            //paddle.setInvisible(true);
-            //paddle.setAI(false);
-            paddle.setGravity(false);
-            paddle.setSilent(true);
-            paddle.setInvulnerable(true);
-            paddle.addScoreboardTag("paddle");
-            player.addPassenger(paddle);
+            Ball.givePaddle(player);
         }
     }
 }

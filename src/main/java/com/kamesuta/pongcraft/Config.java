@@ -18,6 +18,9 @@ public class Config extends BaseConfig {
     // 跳ね返したときのボールの速度倍率
     public DoubleValue ballSpeedMultiplier = new DoubleValue(1.03);
 
+    // 跳ね返したときのボールの最大速度倍率
+    public DoubleValue ballSpeedMaxMultiplier = new DoubleValue(2.0);
+
     // ボールの音の大きさ
     public FloatValue soundVolume = new FloatValue(2.6f);
 

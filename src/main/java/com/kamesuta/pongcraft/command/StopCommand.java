@@ -25,6 +25,7 @@ public class StopCommand extends Command {
 
         // ボールを削除
         PongCraft.instance.balls.forEach(Ball::destroy);
+        PongCraft.instance.balls.clear();
 
         // ボールを削除
         Bukkit.selectEntities(ctx.getSender(), "@e[tag=ball]").forEach(Entity::remove);

@@ -9,8 +9,14 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.spigotmc.event.entity.EntityDismountEvent;
@@ -28,6 +34,9 @@ public class BallListener implements Listener {
                 if (!Config.isEnabled) {
                     return;
                 }
+
+                Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+                Objective ob = sb.getObjective("control");
 
                 for (Ball ball : PongCraft.instance.balls) {
                     // ボールを動かす
@@ -105,9 +114,6 @@ public class BallListener implements Listener {
                                     if (lastHitTime + PongCraft.config.cooldownTimeMs.value() > timeMs)
                                         return false;
 
-                                    // ボールを少し速くする
-                                    ball.veloctiy.multiply(PongCraft.config.ballSpeedMultiplier.value());
-
                                     return true;
                                 }
 
@@ -139,6 +145,21 @@ public class BallListener implements Listener {
 
                             // Z速度にdiffZを加算
                             ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * PongCraft.config.ballSpeed.value());
+
+                            // 速度を正規化
+                            ball.veloctiy.normalize();
+                            ball.veloctiy.multiply(PongCraft.config.ballSpeed.value());
+
+                            if (ob != null) {
+                                Score ballSpeed = ob.getScore("ballSpeed");
+                                double speed = 1;
+                                if (ballSpeed.isScoreSet())
+                                    speed = ballSpeed.getScore() / 1000.0;
+                                speed *= PongCraft.config.ballSpeedMultiplier.value();
+                                speed = Math.min(speed, PongCraft.config.ballSpeedMaxMultiplier.value());
+                                ballSpeed.setScore((int) (speed * 1000));
+                                ball.veloctiy.multiply(speed);
+                            }
 
                             // パーティクルの座標
                             Location hitPos = player.getLocation().clone();
@@ -186,13 +207,25 @@ public class BallListener implements Listener {
         }
     }
 
-//    @EventHandler
-//    public void onJoin(PlayerJoinEvent event) {
-//        // PongCraftモードがONのときのみ
-//        if (!Config.isEnabled) {
-//            return;
-//        }
-//
-//        // #TODO パドルをかぶってなかったらかぶせる
-//    }
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        // PongCraftモードがONのときのみ
+        if (!Config.isEnabled) {
+            return;
+        }
+
+        // パドルをかぶってなかったらかぶせる
+        Ball.givePaddle(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onLeave(PlayerQuitEvent event) {
+        // PongCraftモードがONのときのみ
+        if (!Config.isEnabled) {
+            return;
+        }
+
+        // パドルをかぶってなかったらかぶせる
+        Ball.removePaddle(event.getPlayer());
+    }
 }
