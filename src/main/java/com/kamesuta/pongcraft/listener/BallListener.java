@@ -7,13 +7,15 @@ import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
+import org.spigotmc.event.entity.EntityDismountEvent;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,13 +39,8 @@ public class BallListener implements Listener {
                     Location tpLocation = ball.entity.getLocation().clone().add(ball.veloctiy);
                     ForceTeleport.teleportForce(ball.entity, tpLocation);
 
-                    // ボールプレイヤーをTPし続ける
-                    if (ball.ballPlayer != null) {
-                        ball.ballPlayer.teleport(ball.getLocation().clone().setDirection(ball.ballPlayer.getLocation().getDirection()));
-//                        if (!ball.ballPlayer.isInsideVehicle()) {
-//                            ball.entity.addPassenger(ball.ballPlayer);
-//                        }
-                    }
+                    // 乗せるパケット
+                    ball.sendRidePacket();
 
                     // #TODO 角に当てたり、動きながら当てたら早くなったりするようにする
                     // #TODO 反発力あげる、スピード上げる、跳ね返る向きをランダムにしたりする
@@ -241,12 +238,22 @@ public class BallListener implements Listener {
         }.runTaskTimer(PongCraft.instance, 0, 20 * 5);
     }
 
-    public void onJoin(PlayerJoinEvent event) {
-        // PongCraftモードがONのときのみ
-        if (!Config.isEnabled) {
-            return;
+    @EventHandler
+    private void onRiderDismount(EntityDismountEvent e) {
+        Entity vehicle = e.getDismounted();
+        boolean b = PongCraft.instance.balls.stream().anyMatch(ball -> ball.entity.equals(vehicle));
+        if (b) {
+            e.setCancelled(true);
         }
-
-        // #TODO パドルをかぶってなかったらかぶせる
     }
+
+//    @EventHandler
+//    public void onJoin(PlayerJoinEvent event) {
+//        // PongCraftモードがONのときのみ
+//        if (!Config.isEnabled) {
+//            return;
+//        }
+//
+//        // #TODO パドルをかぶってなかったらかぶせる
+//    }
 }
