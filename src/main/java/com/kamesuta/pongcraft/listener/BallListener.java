@@ -5,23 +5,17 @@ import com.kamesuta.pongcraft.Config;
 import com.kamesuta.pongcraft.ForceTeleport;
 import com.kamesuta.pongcraft.PongCraft;
 import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BallListener implements Listener {
     public static final NamespacedKey KEY_COOLDOWN = new NamespacedKey(PongCraft.instance, "cooldown");
@@ -65,7 +59,7 @@ public class BallListener implements Listener {
                         ballPos.getWorld().spawnParticle(Particle.CRIT, ballPos.clone().add(0, .5, 0), 20, .1, .1, .1, 0.5);
 
                         // 音を出す
-                        ballPos.getWorld().playSound(ballPos, Sound.ENTITY_BLAZE_HURT, Config.soundVolume, 1);
+                        ballPos.getWorld().playSound(ballPos, Sound.ENTITY_BLAZE_HURT, PongCraft.config.soundVolume.value(), 1);
                     }
 
                     // 現在の時刻を取得
@@ -108,11 +102,11 @@ public class BallListener implements Listener {
                                     long lastHitTime = player.getPersistentDataContainer().getOrDefault(KEY_COOLDOWN, PersistentDataType.LONG, 0L);
 
                                     // クールダウン未満だったらヒットしない
-                                    if (lastHitTime + Config.cooldownTimeMs > timeMs)
+                                    if (lastHitTime + PongCraft.config.cooldownTimeMs.value() > timeMs)
                                         return false;
 
                                     // ボールを少し速くする
-                                    ball.veloctiy.multiply(Config.ballSpeedMultiplier);
+                                    ball.veloctiy.multiply(PongCraft.config.ballSpeedMultiplier.value());
 
                                     return true;
                                 }
@@ -144,7 +138,7 @@ public class BallListener implements Listener {
                             double diffZ = ball.getLocation().getZ() - player.getLocation().getZ();
 
                             // Z速度にdiffZを加算
-                            ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * Config.ballSpeed);
+                            ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * PongCraft.config.ballSpeed.value());
 
                             // パーティクルの座標
                             Location hitPos = player.getLocation().clone();
@@ -155,7 +149,7 @@ public class BallListener implements Listener {
                             hitPos.getWorld().spawnParticle(Particle.CRIT, hitPos, 50, .1, .1, 1, 0.5);
 
                             // 音を出す
-                            hitPos.getWorld().playSound(hitPos, Sound.ENTITY_BLAZE_HURT, Config.soundVolume, 1);
+                            hitPos.getWorld().playSound(hitPos, Sound.ENTITY_BLAZE_HURT, PongCraft.config.soundVolume.value(), 1);
                         }
                     }
                 }

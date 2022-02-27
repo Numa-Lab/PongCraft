@@ -60,7 +60,7 @@ public class Ball {
         }
     }
 
-    public static Ball createBall(Location location) {
+    public static Ball createBall(Location location, Player ballPlayer) {
         ArmorStand entity = location.getWorld().spawn(location.clone().add(0, -OFFSET_HEIGHT, 0), ArmorStand.class);
         entity.setGravity(false);
         entity.setInvulnerable(true);
@@ -69,11 +69,10 @@ public class Ball {
         entity.setInvisible(true);
         entity.setItem(EquipmentSlot.HEAD, new ItemStack(Material.WHITE_GLAZED_TERRACOTTA));
 
-        Player ballPlayer = Bukkit.getPlayer(Config.ballPlayer);
         if (ballPlayer != null) {
             entity.addPassenger(ballPlayer);
             ballPlayer.setGlowing(true);
         }
-        return new Ball(entity, new Vector(Config.ballSpeed, 0, Config.ballSpeed), ballPlayer);
+        return new Ball(entity, new Vector(PongCraft.config.ballSpeed.value(), 0, PongCraft.config.ballSpeed.value()), ballPlayer);
     }
 }

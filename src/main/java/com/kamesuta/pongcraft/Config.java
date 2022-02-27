@@ -1,21 +1,33 @@
 package com.kamesuta.pongcraft;
 
-public class Config {
+import net.kunmc.lab.configlib.BaseConfig;
+import net.kunmc.lab.configlib.value.*;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+
+public class Config extends BaseConfig {
     // ON
     public static boolean isEnabled = false;
 
     // クールダウンタイム
-    public static int cooldownTimeMs = 1000;
+    public IntegerValue cooldownTimeMs = new IntegerValue(1000);
 
     // ボールの速度
-    public static double ballSpeed = 0.3;
+    public DoubleValue ballSpeed = new DoubleValue(0.3);
 
     // 跳ね返したときのボールの速度倍率
-    public static double ballSpeedMultiplier = 1.03;
+    public DoubleValue ballSpeedMultiplier = new DoubleValue(1.03);
 
     // ボールの音の大きさ
-    public static float soundVolume = 2.6f;
+    public FloatValue soundVolume = new FloatValue(2.6f);
 
     // おまえボールな
-    public static String ballPlayer = "";
+    public UUIDValue ballPlayer = new UUIDValue();
+
+    // ボールスポーン位置
+    public LocationValue ballPosition = new LocationValue();
+
+    public Config(@NotNull Plugin plugin) {
+        super(plugin);
+    }
 }

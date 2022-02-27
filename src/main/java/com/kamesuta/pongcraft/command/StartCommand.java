@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 public class StartCommand extends Command {
     public StartCommand() {
@@ -23,17 +24,28 @@ public class StartCommand extends Command {
             return;
         }
 
+        if (PongCraft.config.ballPosition.value() == null) {
+            ctx.fail("ballPositionがセットされていません");
+            return;
+        }
+
+        @Nullable Player ballPlayer = Bukkit.getPlayer(PongCraft.config.ballPlayer.value());
+        if (ballPlayer == null) {
+            ctx.fail("ballPlayerが見つかりません");
+            return;
+        }
+
         Config.isEnabled = true;
         ctx.success("PongCraftを有効化しました.");
 
         // ボールを削除
+        PongCraft.instance.balls.clear();
         Bukkit.selectEntities(ctx.getSender(), "@e[tag=ball]").forEach(Entity::remove);
         // パドルを削除
         Bukkit.selectEntities(ctx.getSender(), "@e[tag=paddle]").forEach(Entity::remove);
 
         // ボールを作る
-        // #TODO コマンドブロック対応
-        Ball ball = Ball.createBall(ctx.getPlayer().getLocation());
+        Ball ball = Ball.createBall(PongCraft.config.ballPosition.value(), ballPlayer);
 
         PongCraft.instance.balls.add(ball);
 
