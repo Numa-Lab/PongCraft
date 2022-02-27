@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
@@ -37,7 +38,8 @@ public class BallListener implements Listener {
                 for (Ball ball : PongCraft.instance.balls) {
                     // ボールを動かす
                     Location tpLocation = ball.entity.getLocation().clone().add(ball.veloctiy);
-                    ForceTeleport.teleportForce(ball.entity, tpLocation);
+                    if (tpLocation.getBlock().getType() == Material.AIR || tpLocation.getBlock().getType() == Material.CAVE_AIR)
+                        ForceTeleport.teleportForce(ball.entity, tpLocation);
 
                     // 乗せるパケット
                     ball.sendRidePacket();
@@ -45,79 +47,19 @@ public class BallListener implements Listener {
                     // #TODO 角に当てたり、動きながら当てたら早くなったりするようにする
                     // #TODO 反発力あげる、スピード上げる、跳ね返る向きをランダムにしたりする
 
-                    // #TODO 壁にぶつかったら跳ね返る
                     // ボールの位置を取得する
                     final Location ballPos = ball.getLocation();
 
-                    // 方角のヒットカウント
-                    int hitNorth = 0, hitSouth = 0, hitEast = 0, hitWest = 0;
-
-                    // ボールの位置を取得する
-                    Block baseBlock = ballPos.getBlock();
-                    // 壁に当たったら
-                    List<Location> hitLocations = Stream.of(
-                                    BlockFace.NORTH_WEST, BlockFace.NORTH, BlockFace.NORTH_EAST,
-                                    BlockFace.WEST, BlockFace.EAST,
-                                    BlockFace.SOUTH_WEST, BlockFace.SOUTH, BlockFace.SOUTH_EAST)
-                            .map(baseBlock::getRelative)
-                            .filter(block -> block.getType().isSolid()) // 壁に当たったら
-                            .flatMap(block -> Stream.of(
-                                    new Vector(-0.5, 0, 0.5), new Vector(0.5, 0, 0.5),
-                                    new Vector(-0.5, 0, -0.5), new Vector(0.5, 0, -0.5)
-                            ).map(vector -> block.getLocation().clone().add(vector)))
-//                            .filter(location -> location.distance(ballPos) < 1)
-                            .collect(Collectors.toList());
-
-                    // あたった点すべてループ
-                    for (Location location : hitLocations) {
-                        Location diff = location.clone().subtract(ballPos);
-                        double xDiff = diff.getX();
-                        double zDiff = diff.getZ();
-
-                        // あたったときの判定
-                        if (Math.abs(xDiff) > Math.abs(zDiff)) {
-                            // 左　または　右　にあたった
-                            if (xDiff > 0) {
-                                // 東のブロックにあたったら
-                                hitEast++;
-                            } else {
-                                // 西のブロックにあたったら
-                                hitWest++;
-                            }
-                        } else {
-                            // 上　または　下　にあたった
-                            if (zDiff > 0) {
-                                // 北のブロックにあたったら
-                                hitNorth++;
-                            } else {
-                                // 南のブロックにあたったら
-                                hitSouth++;
-                            }
-                        }
-                    }
-
-                    // あたったら
-                    if (!hitLocations.isEmpty()) {
-                        int diffX = hitEast - hitWest;
-                        int diffZ = hitNorth - hitSouth;
-
-                        if (Math.abs(diffX) > Math.abs(diffZ)) {
-                            if (hitEast > hitWest) {
-                                // 東のブロックにあたったら
-                                ball.veloctiy.setX(-Math.abs(ball.veloctiy.getX()));
-                            } else {
-                                // 西のブロックにあたったら
-                                ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()));
-                            }
-                        } else {
-                            if (hitNorth > hitSouth) {
-                                // 北のブロックにあたったら
-                                ball.veloctiy.setZ(-Math.abs(ball.veloctiy.getZ()));
-                            } else {
-                                // 南のブロックにあたったら
-                                ball.veloctiy.setZ(Math.abs(ball.veloctiy.getZ()));
-                            }
-                        }
+                    // 壁にぶつかったら跳ね返る
+                    RayTraceResult result = ball.entity.getWorld().rayTraceBlocks(
+                            ball.entity.getBoundingBox().getCenter().toLocation(ball.entity.getWorld()),
+                            ball.veloctiy.clone().normalize(), 4);
+                    if (result != null && result.getHitBlock() != null
+                            && !result.getHitBlock().isPassable()
+                            && ball.entity.getBoundingBox().expand(0.7).overlaps(result.getHitBlock().getBoundingBox())) {
+                        // 跳ね返る
+                        Vector normal = result.getHitBlockFace().getDirection();
+                        ball.veloctiy.subtract(normal.clone().multiply(2 * ball.veloctiy.dot(normal)));
 
                         // パーティクルを出す
                         ballPos.getWorld().spawnParticle(Particle.CRIT, ballPos.clone().add(0, .5, 0), 20, .1, .1, .1, 0.5);
@@ -168,6 +110,9 @@ public class BallListener implements Listener {
                                     // クールダウン未満だったらヒットしない
                                     if (lastHitTime + Config.cooldownTimeMs > timeMs)
                                         return false;
+
+                                    // ボールを少し速くする
+                                    ball.veloctiy.multiply(Config.ballSpeedMultiplier);
 
                                     return true;
                                 }
