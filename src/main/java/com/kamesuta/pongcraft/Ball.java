@@ -6,20 +6,15 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 
 public class Ball {
-    public static final double OFFSET_HEIGHT = 0;
-
     public final Entity entity;
     public final Vector veloctiy;
     @Nullable
@@ -40,10 +35,6 @@ public class Ball {
         }
     }
 
-    public Location getLocation() {
-        return entity.getLocation().clone().add(0, OFFSET_HEIGHT, 0);
-    }
-
     public void destroy() {
         entity.remove();
     }
@@ -61,13 +52,12 @@ public class Ball {
     }
 
     public static Ball createBall(Location location, Player ballPlayer) {
-        ArmorStand entity = location.getWorld().spawn(location.clone().add(0, -OFFSET_HEIGHT, 0), ArmorStand.class);
+        ArmorStand entity = location.getWorld().spawn(location, ArmorStand.class);
         entity.setGravity(false);
         entity.setInvulnerable(true);
         entity.addScoreboardTag("ball");
         entity.setMarker(true);
         entity.setInvisible(true);
-        entity.setItem(EquipmentSlot.HEAD, new ItemStack(Material.WHITE_GLAZED_TERRACOTTA));
 
         if (ballPlayer != null) {
             entity.addPassenger(ballPlayer);

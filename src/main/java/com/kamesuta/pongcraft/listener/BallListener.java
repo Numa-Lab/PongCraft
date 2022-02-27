@@ -42,7 +42,7 @@ public class BallListener implements Listener {
                     // #TODO 反発力あげる、スピード上げる、跳ね返る向きをランダムにしたりする
 
                     // ボールの位置を取得する
-                    final Location ballPos = ball.getLocation();
+                    final Location ballPos = ball.entity.getLocation();
 
                     // 壁にぶつかったら跳ね返る
                     RayTraceResult result = ball.entity.getWorld().rayTraceBlocks(
@@ -66,7 +66,7 @@ public class BallListener implements Listener {
                     long timeMs = System.currentTimeMillis();
 
                     // プレイヤー(パドル)にぶつかったら跳ね返る
-                    Optional<Player> isHit = ball.getLocation().getNearbyPlayers(3)
+                    Optional<Player> isHit = ball.entity.getLocation().getNearbyPlayers(3)
                             .stream()
                             .filter(player -> {
                                 // ボールプレイヤーがボールに当たらないようにする
@@ -135,7 +135,7 @@ public class BallListener implements Listener {
                             ball.veloctiy.setX(Math.abs(ball.veloctiy.getX()) * velX);
 
                             // ボールとプレイヤーのZ座標の差を求める
-                            double diffZ = ball.getLocation().getZ() - player.getLocation().getZ();
+                            double diffZ = ball.entity.getLocation().getZ() - player.getLocation().getZ();
 
                             // Z速度にdiffZを加算
                             ball.veloctiy.setZ(ball.veloctiy.getZ() * 0.5 + diffZ / 2 * PongCraft.config.ballSpeed.value());
