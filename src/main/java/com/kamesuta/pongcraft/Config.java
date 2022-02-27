@@ -2,6 +2,7 @@ package com.kamesuta.pongcraft;
 
 import net.kunmc.lab.configlib.BaseConfig;
 import net.kunmc.lab.configlib.value.*;
+import net.kunmc.lab.configlib.value.collection.UUIDSetValue;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ public class Config extends BaseConfig {
     public FloatValue soundVolume = new FloatValue(2.6f);
 
     // おまえボールな
-    public UUIDValue ballPlayer = new UUIDValue();
+    public UUIDSetValue ballPlayers = new UUIDSetValue();
 
     // ボールスポーン位置
     public LocationValue ballPosition = new LocationValue();
